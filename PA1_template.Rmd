@@ -4,6 +4,9 @@
 
 ## Loading and preprocessing the data
 
+This code chuck reads the raw data and performs a number of preprocessing steps to reformat the date column and perform tests to check the consistency of the data.  Finally, the data is placed into a matrix format for further processing.  In this matrix (data.m), each day is represented by a separate row and each column represents a 5 minute interval during that day. Each cell contains the number of steps taken on a specific day during a specific time interval.
+
+
 ```{r preprocessing}
 
 #get data
@@ -15,8 +18,8 @@ colnames(data)
 #check steps
 table(data$steps)
 summary(data$steps)
-hist(data$steps)
-hist(data$steps[!is.na(data$steps) & data$steps != 0])
+#hist(data$steps)
+#hist(data$steps[!is.na(data$steps) & data$steps != 0])
 
 
 #check date
@@ -56,6 +59,7 @@ data.m[34:36, 200:206]
 sum(is.na(data.m))
 
 ```
+
 ## What is mean total number of steps taken per day?
 
 ```{r mean}
@@ -70,7 +74,7 @@ dailySums
 
 #explore dailySums
 summary(dailySums)
-boxplot(dailySums)
+#boxplot(dailySums)
 hist(dailySums, probability=TRUE)
 dens <-density(dailySums, na.rm=TRUE)
 rug(dailySums)
@@ -85,6 +89,9 @@ medianSumSteps
 #10395
 ```
 
+## The mean of the total number of steps taken during the day is `r round(meanSumSteps)`.  The median of the total number of steps taken during the day is `r round(medianSumSteps)`.  
+
+The analysis shown below was not a part of the exercise.  It shows the mean and median for the number of steps for each 5 minute interval throughout the day.
 
 ```{r daily-mean}
 
@@ -100,11 +107,11 @@ dailyMeans
 
 #explore dailyMeans
 summary(dailyMeans)
-boxplot(dailyMeans)
-hist(dailyMeans, probability=TRUE)
-dens <-density(dailyMeans, na.rm=TRUE)
-rug(dailyMeans)
-lines(dens)
+#boxplot(dailyMeans)
+#hist(dailyMeans, probability=TRUE)
+#dens <-density(dailyMeans, na.rm=TRUE)
+#rug(dailyMeans)
+#lines(dens)
 table(round(dailyMeans))
 #overall mean steps per day
 meanSteps <- mean(dailyMeans, na.rm=TRUE)
@@ -119,20 +126,8 @@ medianSteps
 ## What is the average daily activity pattern?
 
 ```{r daily-pattern}
-
-#colnames(data)
-#complete.data <- data[complete.cases(data),]
-#head(complete.data)
-#first plot without averaging across days
-#with(complete.data, plot(steps ~ interval, type="l"))
-
-#split the data on time intervals
-#interval.data <- split(data, data$interval)
-#intervalMeanSteps <- unlist(lapply(interval.data, function(x) mean(x$steps, na.rm=TRUE)))
-#head(intervalMeanSteps)
-#intervals <- names(intervalMeanSteps)
-#length(intervals)
-
+# Calculate the number of steps taken during each 5 minute interval averaged over all days.
+# In our matrix of days * time-interval (data.m), this will be a vector that is the mean of each column 
 intervalMeanSteps <- colMeans(data.m, na.rm=TRUE)
 
 ```
@@ -146,17 +141,22 @@ plot(intervalMeanSteps ~ intervals, type="l")
 
 ```
 
-
 ### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 ```{r max-interval}
-
-intervalMeanSteps[which(intervalMeanSteps==max(intervalMeanSteps))]
+maxSteps <- max(intervalMeanSteps)
+maxSteps
+maxInterval <- intervals[which(intervalMeanSteps==maxSteps)]
+maxInterval
 #206 steps during time interval 835 (between 830-835 minutes)
-hours<-835%/%60
-minutes<-835%%60
+hours<-maxInterval%/%60
+minutes<-round(maxInterval%%60)
 cat(hours, ":", minutes) #13:55 - perhaps a run after lunch
+maxTime <- paste(hours, ":", minutes, sep="")
+maxTime
 ```
+## The highest number of average steps during any 5 minute interval is `r round(maxSteps)` and it occurs during time interval `r maxInterval` which occurs during the five minutes before `r maxTime`. 
+
 ## Imputing missing values
 
 ### 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
@@ -170,6 +170,8 @@ missingDays <- sum(dailySums == 0)
 missingDays
 #8
 ```
+## There are `r missing` NA values in the data set.  There are a total of `r missingDays` days that have nothing but NA values.
+
 
 ### 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
@@ -214,7 +216,7 @@ newDailySums
 
 #explore dailySums
 summary(newDailySums)
-boxplot(newDailySums)
+#boxplot(newDailySums)
 hist(newDailySums, probability=TRUE)
 dens <-density(newDailySums, na.rm=TRUE)
 rug(newDailySums)
@@ -228,6 +230,9 @@ newMedianSumSteps <- median(newDailySums, na.rm=TRUE)
 newMedianSumSteps; medianSumSteps
 #10395
 ```
+
+## Before imputing missing values, the mean and median number of steps per day (averaged over all days) was `r meanSumSteps` and `r medianSumSteps` repsectively.  After imputation, these values are `r newMeanSumSteps` and `r newMedianSumSteps` repsectively.
+
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -274,7 +279,7 @@ library(lattice)
 xyplot(weekday+weekend ~ intervals, data=allData.df, type="l", layout=c(1,2), ylab="Number of steps", xlab="Interval", outer=TRUE)
 
 ```
-## Conclusions
+## There are no significant differences in daily activity patterns between weekday and weekend days.
 
 
 
